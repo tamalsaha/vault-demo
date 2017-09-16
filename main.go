@@ -18,6 +18,7 @@ func main() {
 	s, err := client.Auth().Token().LookupSelf()
 	jp(s)
 
+	// list enabled auth mechanism
 	amech, err := client.Sys().ListAuth()
 	if err != nil {
 		log.Errorln(err)
@@ -26,7 +27,7 @@ func main() {
 		fmt.Println(k, tj(v))
 	}
 
-	// enable approle
+	// $ vault auth-enable approle
 	err = client.Sys().EnableAuthWithOptions("approle", &api.EnableAuthOptions{
 		Type: "approle",
 	})
@@ -34,13 +35,17 @@ func main() {
 		log.Errorln(err)
 	}
 
-	//approle, err := client.Logical().Write("auth/approle/role/testrole", map[string]interface{}{
-	//
-	//
-	//})
-	//if err != nil {
-	//	log.Errorln(err)
-	//}
+	roles, err := client.Logical().List("auth/approle/role")
+	if err != nil {
+		log.Errorln(err)
+	}
+	jp(roles)
+
+	approle, err := client.Logical().Write("auth/approle/role/testrole", map[string]interface{}{
+	})
+	if err != nil {
+		log.Errorln(err)
+	}
 }
 
 func tj(v interface{}) string {
