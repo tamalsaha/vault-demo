@@ -30,17 +30,28 @@ func main() {
 	}
 	oneliners.FILE(tj(roles))
 
-	approle, err := client.Logical().Write("auth/approle/role/testrole", map[string]interface{}{
+	r2, err := client.Logical().Write("auth/approle/role/testrole", map[string]interface{}{
 		"secret_id_ttl":      "10m",
 		"token_num_uses":     "10",
-		"token_ttl":          "20m",
+		"token_ttl":          "2m",
 		"token_max_ttl":      "30m",
-		"secret_id_num_uses": 40,
+		"policies":           []string{"dev-policy","test-policy"},
+		"secret_id_num_uses": 80,
 	})
-	if err != nil {
-		log.Errorln(err)
-	}
-	oneliners.FILE(tj(approle))
+	oneliners.FILE(tj(r2), err)
+
+	r3, err := client.Logical().Read("auth/approle/role/testrole/role-id")
+	oneliners.FILE(tj(r3.Data["role_id"]), err)
+
+	r4, err := client.Logical().Write("auth/approle/role/testrole/secret-id", map[string]interface{}{})
+	oneliners.FILE(tj(r4), err)
+	oneliners.FILE(r4.Data["secret_id"], "|", r4.Data["secret_id_accessor"])
+
+	r5, err := client.Logical().Write("auth/approle/login", map[string]interface{}{
+		"role_id":   r3.Data["role_id"],
+		"secret_id": r4.Data["secret_id"],
+	})
+	oneliners.FILE(tj(r5), err)
 }
 
 func tj(v interface{}) string {
