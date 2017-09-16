@@ -52,6 +52,33 @@ func main() {
 		"secret_id": r4.Data["secret_id"],
 	})
 	oneliners.FILE(tj(r5), err)
+
+
+	tcr := &api.TokenCreateRequest{
+		Policies: []string{"myrole"},
+		Metadata: map[string]string{
+			"host_ip":   "1.2.3.4",
+			//"namespace": pod.Metadata.Namespace,
+			//"pod_ip":    pod.Status.PodIP,
+			//"pod_name":  pod.Metadata.Name,
+			//"pod_uid":   pod.Metadata.Uid,
+		},
+		DisplayName: "pod.Metadata.Name",
+		Period:      "100h",
+		NoParent:    true,
+		TTL:         "100h",
+	}
+	r6, err := client.Auth().Token().Create(tcr)
+	if err != nil {
+		log.Errorln(err)
+	}
+	oneliners.FILE(tj(r6.WrapInfo), err)
+
+	//var wrappedToken bytes.Buffer
+	//err = json.NewEncoder(&wrappedToken).Encode(&secret.WrapInfo)
+	//if err != nil {
+	//	return 500, fmt.Errorf("error parsing wrapped token for pod (%s)", name)
+	//}
 }
 
 func tj(v interface{}) string {
