@@ -1,16 +1,15 @@
 package main
 
 import (
-	"github.com/hashicorp/vault/api"
 	"encoding/json"
 	"fmt"
 	"github.com/appscode/log"
+	"github.com/hashicorp/vault/api"
 )
 
 func main() {
 	cfg := api.DefaultConfig()
-	cb, _ := json.MarshalIndent(cfg, "", "  ")
-	fmt.Println(string(cb))
+	jp(cfg)
 
 	client, err := api.NewClient(cfg)
 	if err != nil {
