@@ -35,7 +35,7 @@ func main() {
 		"token_num_uses":     "10",
 		"token_ttl":          "2m",
 		"token_max_ttl":      "30m",
-		"policies":           []string{"dev-policy","test-policy"},
+		"policies":           []string{"dev-policy", "test-policy"},
 		"secret_id_num_uses": 80,
 	})
 	oneliners.FILE(tj(r2), err)
