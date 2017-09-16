@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+
 	"github.com/appscode/log"
 	"github.com/hashicorp/vault/api"
 	"github.com/tamalsaha/go-oneliners"
@@ -16,27 +16,13 @@ func main() {
 	if err != nil {
 		log.Errorln(err)
 	}
-	s, err := client.Auth().Token().LookupSelf()
-	oneliners.FILE(tj(s))
-
-	// list enabled auth mechanism
-	amech, err := client.Sys().ListAuth()
 	if err != nil {
 		log.Errorln(err)
 	}
-	for k, v := range amech {
-		fmt.Println(k, tj(v))
-	}
+	//s, err := client.Auth().Token().LookupSelf()
+	//oneliners.FILE(tj(s))
 
-	/*
-	// $ vault auth-enable approle
-	err = client.Sys().EnableAuthWithOptions("approle", &api.EnableAuthOptions{
-		Type: "approle",
-	})
-	if err != nil {
-		log.Errorln(err)
-	}
-	*/
+	enableAppRole(client)
 
 	roles, err := client.Logical().List("/auth/approle/role")
 	if err != nil {
@@ -60,4 +46,26 @@ func main() {
 func tj(v interface{}) string {
 	cb, _ := json.MarshalIndent(v, "", "  ")
 	return string(cb)
+}
+
+func enableAppRole(client *api.Client) {
+	// list enabled auth mechanism
+	amech, err := client.Sys().ListAuth()
+	if err != nil {
+		log.Errorln(err)
+	}
+	for k, v := range amech {
+		if k == "approle/" && v.Type == "approle" {
+			oneliners.FILE("approle enabled _________________")
+			return
+		}
+	}
+
+	// $ vault auth-enable approle
+	err = client.Sys().EnableAuthWithOptions("approle", &api.EnableAuthOptions{
+		Type: "approle",
+	})
+	if err != nil {
+		log.Errorln(err)
+	}
 }
