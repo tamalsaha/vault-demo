@@ -8,6 +8,9 @@ import (
 	"github.com/tamalsaha/go-oneliners"
 )
 
+// https://www.vaultproject.io/docs/concepts/response-wrapping.html#response-wrapping-token-creation
+// Response wrapping is per-request and is triggered by providing to Vault the desired TTL for a response-wrapping token for that request. This is set by the client using the X-Vault-Wrap-TTL header and can be either an integer number of seconds or a string duration of seconds (15s), minutes (20m), or hours (25h)
+
 func main() {
 	cfg := api.DefaultConfig()
 	oneliners.FILE(tj(cfg))
@@ -19,6 +22,7 @@ func main() {
 	if err != nil {
 		log.Errorln(err)
 	}
+
 	//s, err := client.Auth().Token().LookupSelf()
 	//oneliners.FILE(tj(s))
 
@@ -42,6 +46,10 @@ func main() {
 
 	r3, err := client.Logical().Read("auth/approle/role/testrole/role-id")
 	oneliners.FILE(tj(r3.Data["role_id"]), err)
+
+	//client.SetWrappingLookupFunc(func(operation, path string) string {
+	//	return "10m"
+	//})
 
 	r4, err := client.Logical().Write("auth/approle/role/testrole/secret-id", map[string]interface{}{
 			"host_ip":   "1.2.3.4",
@@ -75,6 +83,7 @@ func main() {
 		log.Errorln(err)
 	}
 	oneliners.FILE(tj(r6.WrapInfo), err)
+	client.Sys()
 
 	//var wrappedToken bytes.Buffer
 	//err = json.NewEncoder(&wrappedToken).Encode(&secret.WrapInfo)
