@@ -43,7 +43,9 @@ func main() {
 	r3, err := client.Logical().Read("auth/approle/role/testrole/role-id")
 	oneliners.FILE(tj(r3.Data["role_id"]), err)
 
-	r4, err := client.Logical().Write("auth/approle/role/testrole/secret-id", map[string]interface{}{})
+	r4, err := client.Logical().Write("auth/approle/role/testrole/secret-id", map[string]interface{}{
+			"host_ip":   "1.2.3.4",
+	})
 	oneliners.FILE(tj(r4), err)
 	oneliners.FILE(r4.Data["secret_id"], "|", r4.Data["secret_id_accessor"])
 
