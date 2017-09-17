@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/appscode/log"
+	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/vault/api"
 	"github.com/tamalsaha/go-oneliners"
 )
@@ -12,6 +14,57 @@ import (
 // Response wrapping is per-request and is triggered by providing to Vault the desired TTL for a response-wrapping token for that request. This is set by the client using the X-Vault-Wrap-TTL header and can be either an integer number of seconds or a string duration of seconds (15s), minutes (20m), or hours (25h)
 
 func main() {
+	in := `
+path "secret/*" {
+  capabilities = ["create", "read", "update", "delete", "list"]
+}
+path "secret/super-secret" {
+  capabilities = ["deny"]
+}
+path "secret/restricted" {
+  capabilities = ["create"]
+  allowed_parameters = {
+    "foo" = []
+    "bar" = ["zip", "zap"]
+  }
+}
+path "secret/foo" {
+  capabilities = ["create"]
+  allowed_parameters = {
+    "bar" = ["zip", "zap"]
+    "*"   = []
+  }
+}
+path "secret/foo" {
+  capabilities = ["create"]
+  denied_parameters = {
+    "bar" = []
+  }
+}
+path "secret/foo" {
+  capabilities = ["create"]
+  denied_parameters = {
+    "bar" = ["zip", "zap"]
+  }
+}
+path "secret/foo" {
+  capabilities = ["create"]
+  denied_parameters = {
+    "*" = []
+  }
+}
+path "secret/foo" {
+  capabilities = ["create"]
+  allowed_parameters = {
+    "*" = ["foo-*"]
+  }
+}
+`
+	var out interface{}
+	hcl.Decode(&out, in)
+	ob, _ := json.MarshalIndent(out, "", "  ")
+	fmt.Println(string(ob))
+
 	cfg := api.DefaultConfig()
 	oneliners.FILE(tj(cfg))
 
@@ -52,7 +105,7 @@ func main() {
 	//})
 
 	r4, err := client.Logical().Write("auth/approle/role/testrole/secret-id", map[string]interface{}{
-			"host_ip":   "1.2.3.4",
+		"host_ip": "1.2.3.4",
 	})
 	oneliners.FILE(tj(r4), err)
 	oneliners.FILE(r4.Data["secret_id"], "|", r4.Data["secret_id_accessor"])
@@ -83,7 +136,7 @@ func main() {
 	//}
 	//oneliners.FILE(tj(r6), err)
 
-	r7, err := client.Logical().Write( "/auth/approle/role/testrole/secret-id/destroy", map[string]interface{}{
+	r7, err := client.Logical().Write("/auth/approle/role/testrole/secret-id/destroy", map[string]interface{}{
 		"secret_id": r4.Data["secret_id"],
 	})
 	if err != nil {
