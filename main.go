@@ -63,33 +63,42 @@ func main() {
 	})
 	oneliners.FILE(tj(r5), err)
 
+	//tcr := &api.TokenCreateRequest{
+	//	Policies: []string{"myrole"},
+	//	Metadata: map[string]string{
+	//		"host_ip":   "1.2.3.4",
+	//		//"namespace": pod.Metadata.Namespace,
+	//		//"pod_ip":    pod.Status.PodIP,
+	//		//"pod_name":  pod.Metadata.Name,
+	//		//"pod_uid":   pod.Metadata.Uid,
+	//	},
+	//	DisplayName: "pod.Metadata.Name",
+	//	Period:      "100h",
+	//	NoParent:    true,
+	//	TTL:         "100h",
+	//}
+	//r6, err := client.Auth().Token().Create(tcr)
+	//if err != nil {
+	//	log.Errorln(err)
+	//}
+	//oneliners.FILE(tj(r6), err)
 
-	tcr := &api.TokenCreateRequest{
-		Policies: []string{"myrole"},
-		Metadata: map[string]string{
-			"host_ip":   "1.2.3.4",
-			//"namespace": pod.Metadata.Namespace,
-			//"pod_ip":    pod.Status.PodIP,
-			//"pod_name":  pod.Metadata.Name,
-			//"pod_uid":   pod.Metadata.Uid,
-		},
-		DisplayName: "pod.Metadata.Name",
-		Period:      "100h",
-		NoParent:    true,
-		TTL:         "100h",
-	}
-	r6, err := client.Auth().Token().Create(tcr)
+	r7, err := client.Logical().Write( "/auth/approle/role/testrole/secret-id/destroy", map[string]interface{}{
+		"secret_id": r4.Data["secret_id"],
+	})
 	if err != nil {
 		log.Errorln(err)
 	}
-	oneliners.FILE(tj(r6.WrapInfo), err)
-	client.Sys()
+	oneliners.FILE(tj(r7), err)
 
-	//var wrappedToken bytes.Buffer
-	//err = json.NewEncoder(&wrappedToken).Encode(&secret.WrapInfo)
-	//if err != nil {
-	//	return 500, fmt.Errorf("error parsing wrapped token for pod (%s)", name)
-	//}
+	r8, err := client.Auth().Token().RenewTokenAsSelf(r5.Auth.ClientToken, 0)
+	if err != nil {
+		log.Errorln(err)
+	}
+	oneliners.FILE(tj(r8), err)
+
+	// renew token
+	// https://github.com/Boostport/kubernetes-vault/blob/5175dd51d5c72efd1b5c18303bb3940b98e13983/cmd/controller/client/vault.go#L371
 }
 
 func tj(v interface{}) string {
